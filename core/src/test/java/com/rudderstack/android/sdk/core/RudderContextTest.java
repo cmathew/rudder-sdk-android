@@ -210,6 +210,7 @@ public class RudderContextTest {
     @Test
     public void updateDeviceWithAdId() {
         MockedStatic<Utils> mockUtils = Mockito.mockStatic(Utils.class);
+        ShadowLog.reset();
         String message = "Not collecting advertising ID because "
                 + "com.google.android.gms.ads.identifier.AdvertisingIdClient "
                 + "was not found on the classpath.";
@@ -222,7 +223,6 @@ public class RudderContextTest {
 
         mockUtils.when(() -> Utils.isOnClassPath("com.google.android.gms.ads.identifier.AdvertisingIdClient")).thenReturn(false);
         rudderContext_withId.updateDeviceWithAdId();
-
         Assert.assertNotNull(ShadowLog.getLogsForTag(TAG));
         Assert.assertEquals(TAG, (getLogsForTag(TAG).get(0)).tag);
         Assert.assertEquals("Debug: " + message, (getLogsForTag(TAG).get(0)).msg);

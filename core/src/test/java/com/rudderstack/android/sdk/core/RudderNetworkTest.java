@@ -19,7 +19,7 @@ import org.robolectric.RobolectricTestRunner;
 import static android.content.Context.TELEPHONY_SERVICE;
 
 @RunWith(RobolectricTestRunner.class)
-public class RudderNetworkBuilderTest {
+public class RudderNetworkTest {
     private RudderNetwork rudderNetwork;
     @Mock Application application;
     @Mock TelephonyManager telephonyManager;

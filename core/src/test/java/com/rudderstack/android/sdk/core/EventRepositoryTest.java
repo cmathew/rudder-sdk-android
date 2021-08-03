@@ -79,7 +79,7 @@ public class EventRepositoryTest {
             MockedConstruction<RudderMessage> mockedRudderMessageConstructor = Mockito.mockConstruction(RudderMessage.class);
 
             // Setting anonymousId
-            mockRudderContext.when(() -> RudderContext.getAnonymousId()).thenReturn(anonymousId);
+            mockRudderContext.when(RudderContext::getAnonymousId).thenReturn(anonymousId);
             mockRudderPreferenceManager.when(() -> RudderPreferenceManager.getInstance(application)).thenReturn(rudderPreferenceManager);
             Mockito.when(config.isTrackLifecycleEvents()).thenReturn(true);
 
@@ -208,7 +208,7 @@ public class EventRepositoryTest {
     }
 
     private void verifyDebugLogMessage() {
-        messageLog = new HashSet<String>();
+        messageLog = new HashSet<>();
 
         // Storing Shadow.log message
         for(int i = 0; i < getLogsForTag(TAG).size(); i++){
@@ -236,7 +236,7 @@ public class EventRepositoryTest {
 
         // When message.getIntegrations().size() == 0 and all true
         Mockito.when(rudderMessage.getIntegrations()).thenReturn(mockMap);
-        mockRudderClient.when(() -> RudderClient.getDefaultOptions()).thenReturn(defaultOptions);
+        mockRudderClient.when(RudderClient::getDefaultOptions).thenReturn(defaultOptions);
         Mockito.when(defaultOptions.getIntegrations()).thenReturn(mockMap2);
         Mockito.when(mockMap2.size()).thenReturn(1);
 
@@ -258,17 +258,42 @@ public class EventRepositoryTest {
         ShadowLog.reset();
         eventRepository.dump(rudderMessage);
 
-        messageLog = new HashSet<String>();
+        messageLog = new HashSet<>();
         // Storing Shadow.log message
         for(int i = 0; i < getLogsForTag(TAG).size(); i++){
             messageLog.add(getLogsForTag(TAG).get(i).msg);
         }
         Assert.assertTrue(messageLog.contains("Verbose: " + message.get(0)));
-        message.remove(0);
+        ArrayList<String> messageCopy = new ArrayList<>(message);
+        messageCopy.remove(0);
         // Check if all the log message is present or not
-        for(String msg : message){
+        for(String msg : messageCopy){
             Assert.assertTrue(messageLog.contains("Debug: " + msg));
         }
+
+        /*
+        To check dump method, 'else' case:
+        else {
+                message.setIntegrations(prepareIntegrations());
+            }
+         */
+        // When message.getIntegrations().size() == 0 and RudderClient.getDefaultOptions() = null
+        Mockito.when(rudderMessage.getIntegrations()).thenReturn(mockMap);
+        mockRudderClient.when(RudderClient::getDefaultOptions).thenReturn(null);
+        eventRepository.dump(rudderMessage);
+
+        // When message.getIntegrations().size() == 0 and RudderClient.getDefaultOptions().getIntegrations() = null
+        Mockito.when(rudderMessage.getIntegrations()).thenReturn(mockMap);
+        mockRudderClient.when(RudderClient::getDefaultOptions).thenReturn(defaultOptions);
+        Mockito.when(defaultOptions.getIntegrations()).thenReturn(null);
+        eventRepository.dump(rudderMessage);
+
+        // When message.getIntegrations().size() == 0 and RudderClient.getDefaultOptions().getIntegrations().size() = 0
+        Mockito.when(rudderMessage.getIntegrations()).thenReturn(mockMap);
+        mockRudderClient.when(RudderClient::getDefaultOptions).thenReturn(defaultOptions);
+        Mockito.when(defaultOptions.getIntegrations()).thenReturn(mockMap2);
+        Mockito.when(mockMap2.size()).thenReturn(0);
+        eventRepository.dump(rudderMessage);
     }
 
     @Test public void onIntegrationReady() {
@@ -279,25 +304,6 @@ public class EventRepositoryTest {
             return null;
         });
         eventRepository.onIntegrationReady(key, callback);
-
-        messageLog = new HashSet<String>();
-        // Storing Shadow.log message
-        for(int i = 0; i < getLogsForTag(TAG).size(); i++){
-            messageLog.add(getLogsForTag(TAG).get(i).msg);
-        }
-
-        // Check if all the log message is present or not
-        for(String msg : message){
-            Assert.assertTrue(messageLog.contains("Debug: " + msg));
-        }
-//        verifyDebugLogMessage();
+        verifyDebugLogMessage();
     }
-
-    /*
-        message.add();
-            mockRudderLogger.when(() -> RudderLogger.logDebug(message.get())).thenAnswer((Answer<Void>) invocation -> {
-            Log.d(TAG, "Debug: " + message.get());
-            return null;
-        });
-     */
 }

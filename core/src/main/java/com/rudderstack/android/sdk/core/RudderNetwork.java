@@ -4,7 +4,6 @@ import static android.content.Context.TELEPHONY_SERVICE;
 import static com.rudderstack.android.sdk.core.util.Utils.isTv;
 
 import android.app.Application;
-import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.provider.Settings;
@@ -17,8 +16,6 @@ class RudderNetwork {
     private String carrier;
     @SerializedName("wifi")
     private boolean isWifiEnabled = false;
-    @SerializedName("bluetooth")
-    private boolean isBluetoothEnabled = false;
     @SerializedName("cellular")
     private boolean isCellularEnabled = false;
 
@@ -33,12 +30,6 @@ class RudderNetwork {
             // wifi enabled
             WifiManager wifi = (WifiManager) application.getSystemService(Context.WIFI_SERVICE);
             isWifiEnabled = wifi != null && wifi.isWifiEnabled();
-
-            // bluetooth
-            BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-            isBluetoothEnabled = bluetoothAdapter != null
-                    && bluetoothAdapter.isEnabled()
-                    && bluetoothAdapter.getState() == BluetoothAdapter.STATE_ON;
 
             // cellular status
             TelephonyManager tm = (TelephonyManager) application.getSystemService(Context.TELEPHONY_SERVICE);
